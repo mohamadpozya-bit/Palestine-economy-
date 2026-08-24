@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="منصة اقتصاد فلسطين لعرض المؤشرات الاقتصادية الفلسطينية والإجابة عن الأسئلة الاقتصادية استنادًا إلى مصادر رسمية." />
+<meta name="theme-color" content="#241F1C" />
+<meta name="robots" content="index,follow" />
+<title>اقتصاد فلسطين — منصة المؤشرات الاقتصادية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#F2EFE6; --paper:#FBF8F1; --border:#DFD6C1; --ink:#241F1C;
+    --ink-soft:#5B5540; --muted:#9A907A; --muted-text:#7A7361;
+    --dark:#241F1C; --dark-text:#F2EFE6; --dark-soft:#D8D2C2; --dark-muted:#B9B29C;
+    --red:#8C2F2B; --red-hover:#7A2925; --olive:#5B6B3F; --gold:#C7A24A; --gold-text:#7A5C1E;
+    --bubble-user:#EFE9D8;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:'IBM Plex Sans Arabic',sans-serif;}
+  h1,h2,h3,.display{font-family:'Noto Kufi Arabic',sans-serif;}
+  .wrap{max-width:960px; margin:0 auto; padding:0 20px;}
+  header.top{padding:32px 20px 16px;}
+  .top-row{display:flex; align-items:center; justify-content:space-between; max-width:960px; margin:0 auto;}
+  .top-row h1{font-size:28px; margin:0;}
+  .top-row p{color:var(--muted-text); font-size:13px; margin-top:6px;}
+  .credit{font-size:12px; color:var(--gold-text); margin-top:4px;}
+  svg.stitch{width:100%; height:16px; display:block;}
+
+  nav{max-width:960px; margin:22px auto 0; padding:0 20px; display:flex; gap:4px;}
+  nav button{font-family:'IBM Plex Sans Arabic',sans-serif; font-size:14px; padding:10px 16px; border:none; background:transparent; cursor:pointer; color:var(--muted); border-bottom:2px solid transparent;}
+  nav button.active{color:var(--ink); border-bottom-color:var(--red);}
+
+  main{max-width:960px; margin:0 auto; padding:24px 20px;}
+  .tab{display:none; flex-direction:column; gap:28px;}
+  .tab.active{display:flex;}
+
+  .hero{position:relative; background:var(--dark); color:var(--dark-text); border-radius:3px; padding:36px 24px; overflow:hidden;}
+  .hero .glow{position:absolute; left:-40px; top:-40px; width:200px; height:200px; border-radius:50%; background:var(--gold); opacity:.1;}
+  .hero .eyebrow{color:var(--gold); font-size:13px; margin-bottom:10px;}
+  .hero .stat-row{display:flex; flex-wrap:wrap; align-items:flex-end; gap:16px 40px;}
+  .hero .big{font-size:64px; line-height:1;}
+  .hero .big-label{font-size:13px; margin-top:8px; color:var(--dark-soft);}
+  .hero .side{font-size:13px; color:var(--dark-muted); max-width:360px; line-height:1.7;}
+  .hero .side b{color:var(--dark-text); font-weight:500;}
+
+  .grid{display:grid; gap:16px;}
+  .grid.cols4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));}
+  .grid.cols2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px;}
+
+  .card{position:relative; background:var(--paper); border:1px solid var(--border); border-radius:3px; padding:18px;}
+  .card .accent{position:absolute; top:0; right:0; left:0; height:3px;}
+  .card .label-row{display:flex; align-items:center; justify-content:space-between;}
+  .card .label{font-size:12px; color:var(--muted-text);}
+  .card .value{font-size:28px; margin-top:8px;}
+  .card .note{font-size:11px; color:var(--muted); margin-top:4px;}
+
+  .chart-card h3{font-size:17px; margin:0 0 14px;}
+  .chart-card .src{font-size:10px; color:var(--muted); margin-top:10px;}
+  .chart-box{width:100%; height:220px;}
+
+  .glossary{display:flex; flex-direction:column; gap:1px; background:var(--border); border:1px solid var(--border); border-radius:3px; overflow:hidden;}
+  .glossary .item{background:var(--paper); padding:14px 18px;}
+  .glossary .term{font-family:'Noto Kufi Arabic',sans-serif; font-size:14px; color:var(--red); margin-bottom:4px;}
+  .glossary .def{font-size:13px; color:var(--ink-soft); line-height:1.8;}
+
+  .sources{font-size:12px; color:var(--muted); line-height:1.8; border-top:1px solid var(--border); padding-top:14px;}
+
+  .chatbox{display:flex; flex-direction:column; background:var(--paper); border:1px solid var(--border); border-radius:3px; height:70vh; max-height:640px;}
+  .messages{flex:1; overflow-y:auto; padding:18px; display:flex; flex-direction:column; gap:10px;}
+  .msg{display:flex; width:100%;}
+  .msg.user{justify-content:flex-start;}
+  .msg.bot{justify-content:flex-end;}
+  .bubble{max-width:85%; border-radius:3px; padding:10px 16px; font-size:14px; line-height:1.8; white-space:pre-wrap;}
+  .bubble.user{background:var(--bubble-user); color:var(--ink);}
+  .bubble.bot{background:var(--dark); color:var(--dark-text);}
+  .suggestions{padding:0 18px 12px; display:flex; flex-wrap:wrap; gap:8px;}
+  .suggestions button{font-size:12px; border:1px solid var(--gold); color:var(--gold-text); border-radius:999px; padding:6px 12px; background:transparent; cursor:pointer;}
+  .input-row{border-top:1px solid var(--border); padding:10px; display:flex; align-items:center; gap:8px;}
+  .input-row input{flex:1; background:transparent; outline:none; border:none; font-size:14px; font-family:'IBM Plex Sans Arabic',sans-serif; color:var(--ink); padding:0 8px;}
+  .input-row button{background:var(--red); color:var(--dark-text); border-radius:3px; border:none; padding:10px 14px; cursor:pointer; font-family:'IBM Plex Sans Arabic',sans-serif;}
+  .input-row button:disabled{opacity:.4; cursor:default;}
+
+
+  .tab-btn:focus-visible, .suggestions button:focus-visible, .input-row button:focus-visible, .input-row input:focus-visible {
+    outline:2px solid var(--gold);
+    outline-offset:2px;
+  }
+  @media (max-width: 640px){
+    .wrap{padding:0 14px;}
+    header.top{padding:22px 14px 10px;}
+    .top-row{align-items:flex-start;}
+    .top-row h1{font-size:22px;}
+    .top-row p{font-size:12px; line-height:1.7;}
+    nav{padding:0 14px; margin-top:14px; overflow-x:auto;}
+    nav button{white-space:nowrap; padding:9px 12px; font-size:13px;}
+    main{padding:18px 14px;}
+    .tab{gap:20px;}
+    .hero{padding:28px 18px;}
+    .hero .stat-row{gap:14px 24px;}
+    .hero .big{font-size:48px;}
+    .hero .side{font-size:12px;}
+    .grid.cols2{grid-template-columns:1fr; gap:14px;}
+    .grid.cols4{grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;}
+    .card{padding:14px;}
+    .card .value{font-size:22px;}
+    .chart-card h3{font-size:15px;}
+    .chatbox{height:72vh; min-height:480px;}
+    .bubble{max-width:92%; font-size:13px;}
+    .input-row{padding:8px;}
+    .input-row input{min-width:0; font-size:13px;}
+    .input-row button{padding:9px 12px;}
+    footer{padding:12px 14px 28px;}
+  }
+  @media (max-width: 380px){
+    .grid.cols4{grid-template-columns:1fr;}
+    .hero .big{font-size:42px;}
+  }
+
+  footer{max-width:960px; margin:0 auto; padding:16px 20px 40px;}
+  footer p{font-size:11px; color:var(--muted); margin-top:16px; line-height:1.8;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-row">
+    <div>
+      <h1>اقتصاد فلسطين</h1>
+      <p>منصّة لفهم المؤشرات الاقتصادية الفلسطينية والإجابة عن أسئلتك، استنادًا إلى مصادر رسمية</p>
+      <p class="credit">إعداد الطالب: أيهم مشعطي</p>
+    </div>
+  </div>
+</header>
+
+<svg class="stitch" viewBox="0 0 320 16" preserveAspectRatio="none" id="stitch-gold"></svg>
+
+<nav aria-label="التنقل الرئيسي">
+  <button type="button" class="tab-btn active" data-tab="dashboard">لوحة المؤشرات</button>
+  <button type="button" class="tab-btn" data-tab="chat">اسأل عن الاقتصاد</button>
+</nav>
+
+<main>
+  <section class="tab active" id="tab-dashboard">
+
+    <div class="hero">
+      <div class="glow"></div>
+      <p class="eyebrow">أكثر الأرقام دلالة على واقع سوق العمل الآن</p>
+      <div class="stat-row">
+        <div>
+          <div class="big display">46٪</div>
+          <div class="big-label">معدل البطالة الإجمالي في فلسطين، 2025</div>
+        </div>
+        <div class="side">بواقع <b>28٪</b> في الضفة الغربية و<b>78٪</b> في قطاع غزة — أكثر من 650 ألف فلسطيني عاطل عن العمل.</div>
+      </div>
+    </div>
+
+    <svg class="stitch" viewBox="0 0 320 16" preserveAspectRatio="none" id="stitch-red"></svg>
+
+    <div class="grid cols4">
+      <div class="card"><div class="accent" style="background:var(--red)"></div>
+        <div class="label-row"><span class="label">تراجع الناتج المحلي، غزة</span></div>
+        <div class="value display">84٪</div><div class="note">تراكمي منذ اندلاع الحرب</div></div>
+      <div class="card"><div class="accent" style="background:var(--red)"></div>
+        <div class="label-row"><span class="label">تراجع الناتج المحلي، الضفة</span></div>
+        <div class="value display">13٪</div><div class="note">تراكمي منذ اندلاع الحرب</div></div>
+      <div class="card"><div class="accent" style="background:var(--olive)"></div>
+        <div class="label-row"><span class="label">الدين العام للسلطة</span></div>
+        <div class="value display">4.8 مليار$</div><div class="note">نهاية 2025</div></div>
+      <div class="card"><div class="accent" style="background:var(--olive)"></div>
+        <div class="label-row"><span class="label">العجز المالي</span></div>
+        <div class="value display">7.7٪</div><div class="note">من الناتج المحلي، 2025</div></div>
+    </div>
+
+    <div class="grid cols2">
+      <div class="card chart-card">
+        <h3 class="display">معدل البطالة حسب المنطقة (٪)</h3>
+        <div class="chart-box"><canvas id="chartUnemployment"></canvas></div>
+      </div>
+      <div class="card chart-card">
+        <h3 class="display">تراجع نشاط الإنشاءات التراكمي (٪)</h3>
+        <div class="chart-box"><canvas id="chartConstruction"></canvas></div>
+      </div>
+      <div class="card chart-card">
+        <h3 class="display">التبادل التجاري الشهري (مليون دولار)</h3>
+        <div class="chart-box"><canvas id="chartTrade"></canvas></div>
+        <p class="src">بيانات تشرين الثاني (نوفمبر) 2025</p>
+      </div>
+      <div class="card chart-card">
+        <h3 class="display">معدل التضخم السنوي (٪)</h3>
+        <div class="chart-box"><canvas id="chartInflation"></canvas></div>
+      </div>
+    </div>
+
+    <div>
+      <h3 class="display" style="font-size:17px; margin-bottom:14px;">المالية العامة</h3>
+      <div class="grid cols4">
+        <div class="card"><div class="accent" style="background:var(--olive)"></div>
+          <span class="label">العجز المالي للسلطة</span>
+          <div class="value display">7.7٪</div><div class="note">من الناتج المحلي الإجمالي، 2025</div></div>
+        <div class="card"><div class="accent" style="background:var(--olive)"></div>
+          <span class="label">الدين العام</span>
+          <div class="value display">4.8 مليار$</div><div class="note">نهاية 2025</div></div>
+        <div class="card"><div class="accent" style="background:var(--olive)"></div>
+          <span class="label">متأخرات القطاع الخاص</span>
+          <div class="value display">1.82 مليار$</div><div class="note">مستحقة للموردين</div></div>
+        <div class="card"><div class="accent" style="background:var(--olive)"></div>
+          <span class="label">متأخرات رواتب الموظفين</span>
+          <div class="value display">2.85 مليار$</div><div class="note">غير مدفوعة</div></div>
+      </div>
+    </div>
+
+    <div>
+      <h3 class="display" style="font-size:17px; margin-bottom:14px;">قاموس مصطلحات اقتصادية</h3>
+      <div class="glossary" id="glossary"></div>
+    </div>
+
+    <p class="sources">المصادر: الجهاز المركزي للإحصاء الفلسطيني وسلطة النقد الفلسطينية (تقرير الحصاد الاقتصادي، ديسمبر 2025)، وتقارير البنك الدولي عن الاقتصاد الفلسطيني. بيانات التجارة الشهرية بتاريخ نوفمبر 2025.</p>
+  </section>
+
+  <section class="tab" id="tab-chat">
+    <div class="chatbox">
+      <div class="messages" id="messages" role="log" aria-live="polite"></div>
+      <div class="suggestions" id="suggestions">
+        <button type="button" data-q="لماذا ارتفعت البطالة في غزة بهذا الشكل؟">لماذا ارتفعت البطالة في غزة بهذا الشكل؟</button>
+        <button type="button" data-q="ما هي أموال المقاصة ولماذا هي مهمة؟">ما هي أموال المقاصة ولماذا هي مهمة؟</button>
+        <button type="button" data-q="كيف تؤثر الحرب على القطاع المصرفي؟">كيف تؤثر الحرب على القطاع المصرفي؟</button>
+      </div>
+      <div class="input-row">
+        <input id="chatInput" type="text" maxlength="3000" aria-label="اكتب سؤالك الاقتصادي هنا" placeholder="اكتب سؤالك الاقتصادي هنا…" dir="rtl" />
+        <button type="button" id="sendBtn">إرسال</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <svg class="stitch" viewBox="0 0 320 16" preserveAspectRatio="none" id="stitch-olive"></svg>
+  <p>هذه المنصة أداة إرشادية تعتمد على أحدث البيانات الرسمية المتاحة وقت إعدادها، ولا تُغني عن مراجعة الجهاز المركزي للإحصاء الفلسطيني (pcbs.gov.ps) وسلطة النقد الفلسطينية والبنك الدولي للحصول على الأرقام الأحدث.</p>
+</footer>
+
+<script>
+/* ---------- Tatreez cross-stitch divider ---------- */
+function drawStitch(id, color){
+  const svg = document.getElementById(id);
+  let paths = '';
+  for(let i=0;i<40;i++){
+    const x = i*8, up = i%2===0;
+    const d = up ? `M${x} 16 L${x+4} 4 L${x+8} 16` : `M${x} 4 L${x+4} 16 L${x+8} 4`;
+    paths += `<path d="${d}" stroke="${color}" stroke-width="1.6" fill="none" opacity="0.55"/>`;
+  }
+  svg.innerHTML = paths;
+}
+drawStitch('stitch-gold', '#C7A24A');
+drawStitch('stitch-red', '#8C2F2B');
+drawStitch('stitch-olive', '#5B6B3F');
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    const target = document.getElementById('tab-'+btn.dataset.tab);
+    target.classList.add('active');
+    if (btn.dataset.tab === 'dashboard' && typeof Chart !== 'undefined') {
+      requestAnimationFrame(() => {
+        document.querySelectorAll('#tab-dashboard canvas').forEach(canvas => {
+          const chart = Chart.getChart(canvas);
+          if (chart) chart.resize();
+        });
+      });
+    }
+  });
+});
+
+/* ---------- Glossary ---------- */
+const GLOSSARY = [
+  { term: "أموال المقاصة", def: "الضرائب والرسوم الجمركية التي تحصّلها إسرائيل نيابة عن السلطة الفلسطينية على البضائع الموجهة للأسواق الفلسطينية، ثم تحوّلها شهريًا لخزينة السلطة. تشكّل نحو ثلثي إيرادات السلطة، وأي تأخير أو اقتطاع فيها يضرب مباشرة برواتب الموظفين والخدمات العامة." },
+  { term: "معدل المشاركة في القوى العاملة", def: "نسبة الأفراد في سن العمل الذين هم إما يعملون فعليًا أو يبحثون عن عمل بنشاط، مقارنة بإجمالي من هم في سن العمل. هذا المعدل منفصل عن معدل البطالة نفسه." },
+  { term: "الناتج المحلي الإجمالي (GDP)", def: "القيمة الإجمالية للسلع والخدمات المُنتَجة داخل فلسطين خلال فترة زمنية معينة، وهو المقياس الأساسي لحجم الاقتصاد ونموه أو انكماشه." },
+  { term: "العجز المالي", def: "الفارق بين ما تنفقه السلطة الفلسطينية وما تجنيه من إيرادات. يُموَّل عادة عبر الاقتراض المحلي أو المساعدات الخارجية أو تراكم المتأخرات." },
+  { term: "بروتوكول باريس الاقتصادي", def: "اتفاقية اقتصادية موقعة عام 1994 تنظّم العلاقة التجارية والجمركية والنقدية بين السلطة الفلسطينية وإسرائيل، ومنها آلية تحصيل أموال المقاصة." },
+];
+document.getElementById('glossary').innerHTML = GLOSSARY.map(g=>`
+  <div class="item">
+    <div class="term display">${g.term}</div>
+    <div class="def">${g.def}</div>
+  </div>`).join('');
+
+/* ---------- Charts ---------- */
+function renderCharts(){
+  if (typeof Chart === 'undefined') {
+    document.querySelectorAll('.chart-card').forEach(card=>{
+      const box = card.querySelector('.chart-box');
+      if (box) box.innerHTML = '<p style="font-size:12px;color:var(--muted);padding-top:20px">تعذّر تحميل الرسوم البيانية. أعد تحميل الصفحة.</p>';
+    });
+    return;
+  }
+
+
+const arFont = "'IBM Plex Sans Arabic', sans-serif";
+Chart.defaults.font.family = arFont;
+Chart.defaults.color = '#5B5540';
+
+new Chart(document.getElementById('chartUnemployment'), {
+  type: 'bar',
+  data: {
+    labels: ['الإجمالي','الضفة الغربية','قطاع غزة'],
+    datasets: [
+      { label:'2024', data:[51,29,80], backgroundColor:'#C7A24A' },
+      { label:'2025', data:[46,28,78], backgroundColor:'#8C2F2B' },
+    ]
+  },
+  options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, grid:{color:'#E4DCC8'} }, x:{ grid:{display:false} } } }
+});
+
+new Chart(document.getElementById('chartConstruction'), {
+  type: 'bar',
+  data: { labels:['قطاع غزة','الضفة الغربية'], datasets:[{ data:[99,29], backgroundColor:'#5B6B3F' }] },
+  options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{ beginAtZero:true, grid:{color:'#E4DCC8'} }, y:{ grid:{display:false} } } }
+});
+
+new Chart(document.getElementById('chartTrade'), {
+  type:'bar',
+  data:{ labels:['الصادرات','الواردات'], datasets:[{ data:[184.4,703.8], backgroundColor:['#5B6B3F','#8C2F2B'] }] },
+  options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true, grid:{color:'#E4DCC8'}}, x:{grid:{display:false}} } }
+});
+
+new Chart(document.getElementById('chartInflation'), {
+  type:'bar',
+  data:{ labels:['2023 (فعلي)','2025 (توقع أواخر 2024)'], datasets:[{ data:[5.9,4.4], backgroundColor:'#C7A24A' }] },
+  options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true, grid:{color:'#E4DCC8'}}, x:{grid:{display:false}} } }
+});
+}
+renderCharts();
+
+/* ---------- Chat ---------- */
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('chatInput');
+const sendBtn = document.getElementById('sendBtn');
+const suggestionsEl = document.getElementById('suggestions');
+let history = [];
+
+function addMessage(role, text){
+  const wrap = document.createElement('div');
+  wrap.className = 'msg ' + (role==='user' ? 'user' : 'bot');
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble ' + (role==='user' ? 'user' : 'bot');
+  bubble.textContent = text;
+  wrap.appendChild(bubble);
+  messagesEl.appendChild(wrap);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+addMessage('assistant', 'أهلًا بك. اسألني أي سؤال عن الاقتصاد الفلسطيني — البطالة، التجارة، الأونروا، القطاع المصرفي، المقاصة، أو أي مؤشر آخر — وسأجيبك استنادًا إلى بيانات الجهاز المركزي للإحصاء وسلطة النقد الفلسطينية والبنك الدولي.');
+
+async function sendMessage(text){
+  const content = (text ?? inputEl.value).trim();
+  if(!content || content.length > 3000 || sendBtn.disabled) return;
+  suggestionsEl.style.display = 'none';
+  addMessage('user', content);
+  history.push({ role:'user', content });
+  inputEl.value = '';
+  sendBtn.disabled = true;
+  const thinking = document.createElement('div');
+  thinking.className = 'msg bot';
+  thinking.innerHTML = '<div class="bubble bot">يكتب الآن…</div>';
+  messagesEl.appendChild(thinking);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  try{
+    const res = await fetch('/.netlify/functions/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: history })
+    });
+    const data = await res.json().catch(() => ({}));
+    thinking.remove();
+    if (!res.ok) {
+      throw new Error(data.error || 'server_error');
+    }
+    const reply = data.reply || 'عذرًا، تعذّر إيجاد إجابة الآن. حاول مجددًا.';
+    addMessage('assistant', reply);
+    history.push({ role:'assistant', content: reply });
+  }catch(e){
+    thinking.remove();
+    addMessage('assistant', 'تعذّر الاتصال بالخادم. حاول مرة أخرى بعد قليل.');
+  }finally{
+    sendBtn.disabled = false;
+  }
+}
+
+sendBtn.addEventListener('click', ()=>sendMessage());
+inputEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter') sendMessage(); });
+suggestionsEl.querySelectorAll('button').forEach(b=>{
+  b.addEventListener('click', ()=>sendMessage(b.dataset.q));
+});
+</script>
+</body>
+</html>
